@@ -171,5 +171,5 @@ cython_debug/
 .pypirc
 
 runs/*
-*.pt
+yolo*
 *.mp4

@@ -2,7 +2,7 @@ from ultralytics import YOLO
 import time
 import cv2
 
-model = YOLO('./runs/detect/train9/weights/best.pt', task='detect')
+model = YOLO('./runs/detect/train17/weights/best.pt', task='detect')
 # model = YOLO('./yolo11n.pt')
 
 # model.val(data='../IC.v4i.yolov11/data.yaml')
@@ -21,22 +21,18 @@ POSITIONS = {
 
 # Function to determine the position based on bounding box height-to-width ratio
 def get_position(results):
-    
     names = [results[0].names[cls.item()] for cls in results[0].boxes.cls.int()]
-
-
-    if "em_pe" in names:  # Standing (tall and narrow)
-        POSITIONS["em_pe"] += 1
-    elif "sentado" in names:  # Sitting (moderate height-to-width ratio)
-        POSITIONS["sentado"] += 1
-    elif "deitado" in names:  # Lying down (short and wide)
-        POSITIONS["deitado"] += 1
-    else:
+    if len(results[0].boxes) == 0:
+        print(results[0].boxes)
         POSITIONS["not_detected"] += 1
+        return
+    for name in names:
+        POSITIONS[name] += 1
 
 
 # Open the video file or webcam
-video_path = "6.mp4"  # Replace with your video file or 0 for webcam
+video_path = '8.mp4'  # Replace with your video file or 0 for webcam
+
 cap = cv2.VideoCapture(video_path)
 
 # Variables for time tracking
@@ -49,20 +45,27 @@ while cap.isOpened():
         break
 
     # Run YOLOv11 object detection on the frame
-    results = model.predict(frame, verbose=False, conf=0.5, iou=0.6)
+    results = model.predict(
+        frame, 
+        verbose=False, 
+        conf=0.5,
+        iou=0.5,
+        imgsz=640,
+    )
+
+    
+    # Display the frame with bounding boxes
+    cv2.imshow("Elderly Monitoring", results[0].plot())
 
     # Process the results
     get_position(results)
-    
-
-    # Display the frame with bounding boxes
-    cv2.imshow("Elderly Monitoring", results[0].plot())
 
     # Exit if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
     frame_count += 1
+    # time.sleep(0.005)
 
 if frame_count != 0:
 # Calculate total time and percentages
