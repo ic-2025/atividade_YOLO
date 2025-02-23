@@ -173,3 +173,5 @@ cython_debug/
 runs/*
 yolo*
 *.mp4
+*zip
+model/

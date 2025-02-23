@@ -106,7 +106,6 @@ class YOLOModel:
             # Exit if 'q' is pressed
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
             frame_count += 1
 
         # Release resources
@@ -119,34 +118,31 @@ class YOLOModel:
 
         return (POSITIONS, total_frames, total_time)
 
-if __name__ == '__main__':
-    # Create an instance of YOLOModel
-    yolo = YOLOModel('./runs/detect/train17/weights/best.pt', task='detect')
+def main(user_input: str | int) -> None:
+    """
+    Runs the YOLOv11 object detection model on a video and prints the results.
 
-    print("#######################\n\n Bem vindo ao Elderly Monitoring\n\n#######################")
+    Args:
+        user_input (str | int): The path to the video file to be processed or the webcam input.
 
-    print("\nPressione na tecla 'q' para sair do programa.\n")
+    Returns:
+        None
+    """
+    yolo = YOLOModel('./model/best.pt', task='detect')
 
-    selection =  input("Deseja utilizar seu Webcam ou um arquivo de video? (s: webcam / n: video): ").lower()
+    # Get the results from the YOLO model
+    [POSITIONS, total_frames, total_time] = yolo.get_track_with_yolo(user_input)
 
-    if selection == 's':
-        user_input = 0 
-    else:
-        user_input = input("Digite o caminho do video: ")
-
-    [POSITIONS, total_frames, total_time] = yolo.get_track_with_yolo(user_input) 
-
+    # If frames were detected, calculate the time spent in each position
     if total_frames != 0:
-    # Calculate total time and percentages
-        
         # Calculate time spent in each position
         time_standing = (POSITIONS["em_pe"] / total_frames) * total_time
         time_sitting = (POSITIONS["sentado"] / total_frames) * total_time
         time_lying_down = (POSITIONS["deitado"] / total_frames) * total_time
         time_not_detected = (POSITIONS["not_detected"] / total_frames) * total_time
 
-        sec = 60
         # Convert time from seconds to minutes
+        sec = 60
         time_standing_min = (time_standing / sec)
         time_sitting_min = (time_sitting / sec)
         time_lying_down_min = (time_lying_down / sec)
@@ -159,3 +155,30 @@ if __name__ == '__main__':
         print(f"Tempo deitado: {time_lying_down_min:.2f} minutos ({time_lying_down / total_time * 100:.2f}%)")
         print(f"Tempo não detectado: {time_not_detected_min:.2f} minutos ({time_not_detected / total_time * 100:.2f}%)")
         print(f"Tempo total: {total_time/sec:.2f} minutos")
+    else:
+        print("Nenhum frame detectado. Tente novamente.")
+
+
+if __name__ == '__main__':
+    # Create an instance of YOLOModel
+    yolo = YOLOModel('./model/best.pt', task='detect')
+
+    print("#######################\n\n Bem vindo ao Elderly Monitoring\n\n#######################")
+
+    print("\nPressione na tecla 'q' para sair do programa.\n")
+
+    selection =  input("Deseja utilizar seu Webcam ou um arquivo de video? (s: webcam / n: video): ").lower()
+
+    if selection == 's':
+        user_input: int = 0 
+        main(user_input)
+    else:
+        while True:
+            user_input: str = input("Digite o caminho do video: ")
+            main(user_input)
+            selection =  input("Deseja utilizar outro video? (s: sim / n: nao): ").lower()
+            if selection == 'n':
+                break
+
+
+    
