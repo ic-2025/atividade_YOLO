@@ -31,7 +31,7 @@ def get_position(results):
 
 
 # Open the video file or webcam
-video_path = '8.mp4'  # Replace with your video file or 0 for webcam
+video_path = 0  # Replace with your video file or 0 for webcam
 
 cap = cv2.VideoCapture(video_path)
 
